@@ -4,12 +4,13 @@
 
 ## Inspiration
 
-* **Raccourcis claviers** : pour une meilleure UX, j'ai choisi de m'aligner sur les raccourcis du leader de la vidéo en ligne, YouTube.
+* **Keyboard shortcuts** are the same as on YouTube:
+  * `Space` or `K` to pause
+  * `Left` and `right` arrow keys to skip and go back by 5 seconds
+  * `J` and `L` to skip and go back by 10 seconds
+  * `F` to ~~pay respect~~ toggle fullscreen
 
-
-* **Design** : la particularité du player est de flouter la vidéo dans la barre des contrôle pour que celle-ci se fonde dans la vidéo et permette une meilleure immersion. Ce procédé peut être trouvé dans le logiciel d'Apple QuickTime Player, et s'inspire des guidelines du [Fluent Design System](https://fluent.microsoft.com/) de Microsoft.
-
-![Screenshot de QuickTime Player](http://cdn.osxdaily.com/wp-content/uploads/2015/12/airplay-video-from-quicktime-player-mac-os-x.jpg)
+* **Design** : Inspired by Microsoft's [Fluent Design System](https://fluent.microsoft.com/), and Apple's QuickTime Player
 
 ## Fonctionnalités
 
@@ -26,14 +27,3 @@
 * Obtenir l'effet de l'arrière-plan flouté a posé problème, la propriété `backdrop-filter` n'étant toujours qu'expérimentale.
 * Compatibilité : l'usage de la propriété CSS `pointer-events` rend le player incompatible avec les versions d'IE inférieures à 10.
 * Débogage : une grande partie du code est dédiée à la prévention de bugs dans des cas d'enchainements d'actions particuliers.
-
-## Techniques utilisées
-
-* `localStorage` pour garder en mémoire les préférences de l'utilisateur.
-* `display : flex` pour la disposition des éléments dans la barre de contrôle et pour qu'ils se compactent lorsque la barre de volume apparaît.
-* Police d'icônes [Material](https://material.io/icons/) de Google.
-
-## Remerciements
-
-* Bruno Simon pour le fichier `reset.min.css`.
-* Adrien Vande Casteele pour ses retours sur l'expérience utilisateur et son aide au débogage.
