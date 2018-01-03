@@ -1,6 +1,6 @@
 # HTML5 Video Player
 
-*par Rémi de Juvigny*
+*by [Rémi de Juvigny](http://remi.space)*
 
 ## Inspiration
 
@@ -15,7 +15,7 @@
 ## Features
 
 * Change playback speed
-* Night mode
+* Night mode that filters blue light
 * Toggle autoplay
 * Drag and drop on seekbars
 * Controls panel auto-collapses
