@@ -185,6 +185,15 @@ const updateCurrentTime = (difference) => {
   }
 }
 
+const toggleControls = () => {
+  if ($controls.classList.contains('collapsed')) {
+    showControls()
+    collapseTimeout()
+  } else {
+    hideControls()
+  }
+}
+
 // Hide controls
 const hideControls = () => {
   if (!$controls.classList.contains('collapsed')) {
@@ -249,6 +258,52 @@ const updateVideoPosition = (left) => {
   for (const $video of $videos) {
     const videoTime = ratio * $video.duration
     $video.currentTime = videoTime
+  }
+}
+
+// Seek bar drag started
+const timeDragStart = (x) => {
+  isDraggingTimeSeekBar = true
+  for ($video of $videos) {
+    $video.pause()
+  }
+  // Change reload icon if video has ended
+  if ($videos[0].currentTime == $videos[0].duration) {
+    $playPauseIcon.innerText = 'play_arrow'
+    togglePause()
+  }
+  // Hide setting popup
+  $settingsPopup.classList.add('hidden')
+  // Prevent drag to the very end of the video
+  if (x < $timeSeekBar.getBoundingClientRect().left + $timeSeekBar.getBoundingClientRect().width) {
+    updateVideoPosition(x)
+  }
+}
+
+const timeDragMiddle = (x) => {
+  if (
+    isDraggingTimeSeekBar &&
+    x < $timeSeekBar.getBoundingClientRect().left + $timeSeekBar.getBoundingClientRect().width
+  ) {
+    updateVideoPosition(x)
+  }
+}
+
+// Seek bar drag ended
+const timeDragEnd = (x) => {
+  if (isDraggingTimeSeekBar) {
+    // Seek bar drag ended, resume video
+    for ($video of $videos) {
+      // Only play video if it wasn't paused
+      if ($playPauseIcon.innerText == "pause") {
+        $video.play()
+      }
+    }
+    // Prevent drag to the very end of the video
+    if (x < $timeSeekBar.getBoundingClientRect().left + $timeSeekBar.getBoundingClientRect().width) {
+      updateVideoPosition(x)
+    }
+    isDraggingTimeSeekBar = false
   }
 }
 
@@ -384,6 +439,13 @@ document.addEventListener('mousedown', (event) => {
     event.returnValue = false
   }
 })
+document.addEventListener('touchstart', (event) => {
+  if (event.preventDefault) {
+    event.preventDefault()
+  } else {
+    event.returnValue = false
+  }
+})
 
 // Start video where it was left the previous session
 $videos[0].addEventListener('loadedmetadata', () => {
@@ -409,48 +471,29 @@ $videos[0].addEventListener('timeupdate', () => {
 
 // Update video time on seekbar click and drag
 $timeSeekBar.addEventListener('mousedown', (event) => {
-  // Seek bar drag started
-  isDraggingTimeSeekBar = true
-  for ($video of $videos) {
-    $video.pause()
-  }
-  // Change reload icon if video has ended
-  if ($videos[0].currentTime == $videos[0].duration) {
-    $playPauseIcon.innerText = 'play_arrow'
-    togglePause()
-  }
-  // Hide setting popup
-  $settingsPopup.classList.add('hidden')
-  // Prevent drag to the very end of the video
-  if (event.clientX < $timeSeekBar.getBoundingClientRect().left + $timeSeekBar.getBoundingClientRect().width) {
-    updateVideoPosition(event.clientX)
-  }
+  timeDragStart(event.clientX)
+})
+$timeSeekBar.addEventListener('touchstart', (event) => {
+  console.log('start')
+  timeDragStart(event.clientX)
 })
 
+// Update time while dragging
+document.addEventListener("mousemove", event => {
+  timeDragMiddle(event.clientX)
+})
+document.addEventListener("touchmove", event => {
+  console.log("move")
+  timeDragMiddle(event.clientX)
+})
+
+// End drag and drop
 document.addEventListener('mouseup', (event) => {
-  if (isDraggingTimeSeekBar) {
-    // Seek bar drag ended, resume video
-    for ($video of $videos) {
-      // Only play video if it wasn't paused
-      if ($playPauseIcon.innerText == 'pause') {
-        $video.play()
-      }
-    }
-    // Prevent drag to the very end of the video
-    if (event.clientX < $timeSeekBar.getBoundingClientRect().left + $timeSeekBar.getBoundingClientRect().width) {
-      updateVideoPosition(event.clientX)
-    }
-    isDraggingTimeSeekBar = false
-  }
+  timeDragEnd(event.clientX)
 })
-
-document.addEventListener('mousemove', (event) => {
-  if (
-    isDraggingTimeSeekBar &&
-    event.clientX < $timeSeekBar.getBoundingClientRect().left + $timeSeekBar.getBoundingClientRect().width
-  ) {
-    updateVideoPosition(event.clientX)
-  }
+document.addEventListener('touchend', (event) => {
+  console.log("end")
+  timeDragEnd(event.clientX)
 })
 
 // Update volume on seekbar click and drag
@@ -487,8 +530,16 @@ $videos[1].addEventListener('canplay', updateBlurStyle)
 
 // Play/pause on play-pause icon click
 $playPause.addEventListener('click', togglePause)
+
 // Play/pause on video click
 $videos[0].addEventListener('click', togglePause)
+
+// Toglle controls on touch
+$videos[0].addEventListener("touchstart", (event) => {
+  event.preventDefault()
+  toggleControls()
+})
+
 // Play/pause on spacebar and K key presses
 document.addEventListener('keydown', (event) => {
   if (event.keyCode == 32 || event.keyCode == 75) {
