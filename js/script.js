@@ -337,16 +337,13 @@ const updatePlayBackRate = (speed) => {
 }
 
 const updateBlurCoords = () => {
-  // console.log('update')
-  // // Update dimensions
-  // $canvasBlur.width = $controls.style.width
-  // $canvasBlur.height = $controls.style.height
-  //$canvasBlur.height = $video.getBoundingClientRect().height.toString() + 'px'
+  // Update dimensions
+  $canvasBlur.width = parseInt(getComputedStyle($controls).width)
+  $canvasBlur.height = parseInt(getComputedStyle($controls).height)
 }
 
 const updateBlur = () => {
   if (!$video.paused) {
-    console.log($canvasBlur.width)
     $blurContext.fillRect(0, 0, $canvasBlur.width, $canvasBlur.height)
   }
   requestAnimationFrame(updateBlur)
