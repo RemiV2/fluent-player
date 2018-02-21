@@ -92,13 +92,10 @@ body {
   height: 100%;
 }
 
-.player .video.blur {
+.player canvas.blur {
   position: absolute;
-  width: 650px;
-  height: 365px;
-  top: -295px;
-  -webkit-filter: blur(24px) brightness(91%);
-  filter: blur(24px) brightness(93%);
+  top: 0;
+  left: 0;
   will-change: opacity;
 }
 
