@@ -349,10 +349,10 @@ const updateBlur = () => {
 
     const offsetX = canvasCoords.left - videoCoords.left
     const offsetY = canvasCoords.top - videoCoords.top
-
     const widthRatio = $video.videoWidth / videoCoords.width
     const heightRatio = $video.videoHeight / videoCoords.height
-
+    
+    // Dim and blur for better readability
     blurContext.filter = 'blur(24px) brightness(93%)'
 
     blurContext.drawImage(
