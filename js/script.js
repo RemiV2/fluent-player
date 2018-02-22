@@ -4,13 +4,15 @@ const $filterBlack = document.querySelector('.black-filter')
 const $views = document.querySelector('.views')
 const $player = document.querySelector('.player')
 const $filterRed = $player.querySelector('.red-filter')
-const $videos = $player.querySelectorAll('.video')
+const $video = $player.querySelector('.video')
 const $settingsPopup = $player.querySelector('.settings-popup')
 const $nightMode = $settingsPopup.querySelector('.night-mode')
 const $autoplay = $settingsPopup.querySelector('.autoplay')
 const $speedValues = Array.from($settingsPopup.querySelectorAll('.speed .value'))
 const $speedValuesCheckBoxes = Array.from($settingsPopup.querySelectorAll('.speed .value .material-icons'))
 const $controls = $player.querySelector('.controls')
+const $canvasBlur = $controls.querySelector('canvas.blur')
+const blurContext = $canvasBlur.getContext("2d")
 const $playPause = $controls.querySelector('.play-pause')
 const $timeSeekBar = $controls.querySelector('.seek-bar.time-bar')
 const $timeFillBar = $timeSeekBar.querySelector('.fill-bar.time-bar')
@@ -45,24 +47,18 @@ const togglePause = () => {
     $settingsPopup.classList.add('hidden')
   } else if ($playPause.dataset.state == 'playing') {
     // Pause the video if it's playing
-    for (const $video of $videos) {
-      $video.pause()
-    }
+    $video.pause()
     $playPause.dataset.state = 'paused'
     $playPause.innerText = 'play_arrow'
   } else if ($playPause.dataset.state == 'paused') {
     // Play the video if it's paused
-    for (const $video of $videos) {
-      $video.play()
-    }
+    $video.play()
     $playPause.dataset.state = 'playing'
     $playPause.innerText = 'pause'
-  } else if ($videos[0].currentTime == $videos[0].duration){
+  } else if ($video.currentTime == $video.duration){
     // Restart the video if it ended
-    for (const $video of $videos) {
-      $video.currentTime = 0
-      $video.play()
-    }
+    $video.currentTime = 0
+    $video.play()
     $playPause.dataset.state = 'playing'
     $playPause.innerText = 'pause'
   }
@@ -112,12 +108,12 @@ const toggleFullscreen = () => {
   $settingsPopup.classList.add('hidden')
   updateSettingsPopupStyle()
   // Update blurred background to the new dimensions once they're applied
-  window.setTimeout(updateBlurStyle, 500)
+  window.setTimeout(updateBlurCoords, 500)
 }
 
 // Turn volume on and off
 const toggleVolume = () => {
-  if ($videos[0].volume == 0) {
+  if ($video.volume == 0) {
     // Put previous value
     if (userConfig.volume > 0) {
       updateVolume(userConfig.volume)
@@ -174,14 +170,12 @@ const toggleAutoplay = () => {
 // Go back and forth in video
 const updateCurrentTime = (difference) => {
   // Difference is in seconds
-  for ($video of $videos) {
-    $video.currentTime += difference
-    // Prevent impossible values
-    if ($video.currentTime < 0) {
-      $video.currentTime = 0
-    } else if ($video.currentTime > $video.duration) {
-      $video.currentTime = $video.duration
-    }
+  $video.currentTime += difference
+  // Prevent impossible values
+  if ($video.currentTime < 0) {
+    $video.currentTime = 0
+  } else if ($video.currentTime > $video.duration) {
+    $video.currentTime = $video.duration
   }
 }
 
@@ -222,7 +216,7 @@ const fixEscapeBehavior = () => {
     // Set default player width
     $player.style.width = '650px'
     // Reset blur backgorund position and dimensions
-    updateBlurStyle()
+    updateBlurCoords()
     // Reset player position
     resetStyling()
     // Update fullscreen icon
@@ -235,40 +229,36 @@ const updateTimeValues = () => {
   // Initialize
   $timePast.innerText = ''
   // Minutes
-  $timePast.innerText += Math.floor($videos[0].currentTime/60).toString()
+  $timePast.innerText += Math.floor($video.currentTime/60).toString()
   // Force 2 digits on seconds by prepending a 0 if the value is less than 10
-  $timePast.innerText += `:${Math.floor($videos[0].currentTime%60) < 10 ? "0" : ""}`
+  $timePast.innerText += `:${Math.floor($video.currentTime%60) < 10 ? "0" : ""}`
   // Seconds
-  $timePast.innerText += Math.floor($videos[0].currentTime%60)
+  $timePast.innerText += Math.floor($video.currentTime%60)
 
   // Time left
   // Initialize
   $timeLeft.innerText = '-'
   // Minutes
-  $timeLeft.innerText += Math.floor(($videos[0].duration - $videos[0].currentTime)/60).toString()
+  $timeLeft.innerText += Math.floor(($video.duration - $video.currentTime)/60).toString()
   // Force 2 digits on seconds by prepending a 0 if the value is less than 10
-  $timeLeft.innerText += `:${Math.floor(($videos[0].duration - $videos[0].currentTime)%60) < 10 ? "0" : ""}`
+  $timeLeft.innerText += `:${Math.floor(($video.duration - $video.currentTime)%60) < 10 ? "0" : ""}`
   // Seconds
-  $timeLeft.innerText += Math.floor(($videos[0].duration - $videos[0].currentTime)%60).toString()
+  $timeLeft.innerText += Math.floor(($video.duration - $video.currentTime)%60).toString()
 }
 
 // Update video position based on seekbar click/drag
 const updateVideoPosition = (left) => {
   const ratio = (left - $timeSeekBar.getBoundingClientRect().left) / $timeSeekBar.offsetWidth
-  for (const $video of $videos) {
-    const videoTime = ratio * $video.duration
-    $video.currentTime = videoTime
-  }
+  const videoTime = ratio * $video.duration
+  $video.currentTime = videoTime
 }
 
 // Seek bar drag started
 const timeDragStart = (x) => {
   isDraggingTimeSeekBar = true
-  for ($video of $videos) {
-    $video.pause()
-  }
+  $video.pause()
   // Change reload icon if video has ended
-  if ($videos[0].currentTime == $videos[0].duration) {
+  if ($video.currentTime == $video.duration) {
     $playPauseIcon.innerText = 'play_arrow'
     togglePause()
   }
@@ -293,11 +283,9 @@ const timeDragMiddle = (x) => {
 const timeDragEnd = (x) => {
   if (isDraggingTimeSeekBar) {
     // Seek bar drag ended, resume video
-    for ($video of $videos) {
+    if ($playPauseIcon.innerText == "pause") {
       // Only play video if it wasn't paused
-      if ($playPauseIcon.innerText == "pause") {
-        $video.play()
-      }
+      $video.play()
     }
     // Prevent drag to the very end of the video
     if (x < $timeSeekBar.getBoundingClientRect().left + $timeSeekBar.getBoundingClientRect().width) {
@@ -316,7 +304,7 @@ const updateVolume = (ratio) => {
     ratio = 0
   }
   // Set new video volume
-  $videos[0].volume = ratio
+  $video.volume = ratio
   // Update seekbar position
   $volumeFillBar.style.transform = `scaleX(${ratio})`
   // Compensate cursor shrink
@@ -334,10 +322,8 @@ const updateVolume = (ratio) => {
 }
 
 const updatePlayBackRate = (speed) => {
-  for (const $video of $videos) {
-    // Change video speed
-    $video.playbackRate = speed
-  }
+  // Change video speed
+  $video.playbackRate = speed
   // Save playback rate in user preferences
   userConfig.playBackRate = parseFloat(speed)
   // Initialize speed checkboxes
@@ -350,13 +336,34 @@ const updatePlayBackRate = (speed) => {
   $selectedOption.querySelector('.material-icons').innerText = 'radio_button_checked'
 }
 
-const updateBlurStyle = () => {
+const updateBlurCoords = () => {
   // Update dimensions
-  $videos[1].style.width = $videos[0].getBoundingClientRect().width.toString() + 'px'
-  $videos[1].style.height = $videos[0].getBoundingClientRect().height.toString() + 'px'
-  // Update position
-  $videos[1].style.left = ($player.getBoundingClientRect().left - $controls.getBoundingClientRect().left).toString() + 'px'
-  $videos[1].style.top = ($player.getBoundingClientRect().top - $controls.getBoundingClientRect().top).toString() + 'px'
+  $canvasBlur.width = parseInt(getComputedStyle($controls).width)
+  $canvasBlur.height = parseInt(getComputedStyle($controls).height)
+}
+
+const updateBlur = () => {
+  if (!$video.paused) {
+    const canvasCoords = $controls.getBoundingClientRect()
+    const videoCoords = $video.getBoundingClientRect()
+
+    const offsetX = canvasCoords.left - videoCoords.left
+    const offsetY = canvasCoords.top - videoCoords.top
+    const widthRatio = $video.videoWidth / videoCoords.width
+    const heightRatio = $video.videoHeight / videoCoords.height
+    
+    // Dim and blur for better readability
+    blurContext.filter = 'blur(24px) brightness(93%)'
+
+    blurContext.drawImage(
+      $video,
+      offsetX * widthRatio, offsetY * heightRatio,
+      canvasCoords.width * widthRatio, canvasCoords.height * heightRatio,
+      0, 0,
+      canvasCoords.width, canvasCoords.height
+    )
+  }
+  requestAnimationFrame(updateBlur)
 }
 
 const updateSettingsPopupStyle = () => {
@@ -382,7 +389,7 @@ const updateUserConfig = () => {
 
 
 
-// Create default config if there isn't one
+// Create default config on startup if there isn't one
 if (userConfig == null) {
   userConfig = {
     autoplay: true,
@@ -406,11 +413,9 @@ if (userConfig.views > 1) {
 if (userConfig.autoplay) {
   // Update autoplay checkbox
   $autoplay.querySelector('.material-icons').innerText = 'check_box'
-  for (const $video of $videos) {
-    $video.play()
-    $playPauseIcon.innerText = 'pause'
-    $playPauseIcon.dataset.state = 'playing'
-  }
+  $video.play()
+  $playPauseIcon.innerText = 'pause'
+  $playPauseIcon.dataset.state = 'playing'
 }
 
 // Turn night mode on depending on user settings
@@ -426,10 +431,13 @@ updateVolume(userConfig.volume)
 
 // Save current video position on page close
 window.addEventListener('beforeunload', () => {
-  userConfig.lastSessionTime = $videos[0].currentTime
+  userConfig.lastSessionTime = $video.currentTime
   // Save all config changes
   updateUserConfig()
 })
+
+// Update blur on each video frame
+requestAnimationFrame(updateBlur)
 
 // Prevent all drag gestures
 document.addEventListener('mousedown', (event) => {
@@ -448,20 +456,18 @@ document.addEventListener('touchstart', (event) => {
 })
 
 // Start video where it was left the previous session
-$videos[0].addEventListener('loadedmetadata', () => {
-  if (userConfig.lastSessionTime < $videos[0].duration) {
-    for (const $video of $videos) {
-      $video.currentTime = userConfig.lastSessionTime
-    }
+$video.addEventListener('loadedmetadata', () => {
+  if (userConfig.lastSessionTime < $video.duration) {
+    $video.currentTime = userConfig.lastSessionTime
   }
   // Display time past and time left on load
   updateTimeValues()
 })
 
 // Update player data when the video is playing
-$videos[0].addEventListener('timeupdate', () => {
+$video.addEventListener('timeupdate', () => {
   // Update fill bar
-  const ratio = $videos[0].currentTime / $videos[0].duration
+  const ratio = $video.currentTime / $video.duration
   $timeFillBar.style.transform = `scaleX(${ratio})`
   // Prevent cursor shrink
   $timeCursor.style.transform = `scaleX(${1/ratio})`
@@ -525,17 +531,17 @@ document.addEventListener('mousemove', (event) => {
   }
 })
 
-// Position controls background when videos are ready
-$videos[1].addEventListener('canplay', updateBlurStyle)
+// Position controls background when video is ready
+$video.addEventListener('canplay', updateBlurCoords)
 
 // Play/pause on play-pause icon click
 $playPause.addEventListener('click', togglePause)
 
 // Play/pause on video click
-$videos[0].addEventListener('click', togglePause)
+$video.addEventListener('click', togglePause)
 
 // Toglle controls on touch
-$videos[0].addEventListener("touchstart", (event) => {
+$video.addEventListener("touchstart", (event) => {
   event.preventDefault()
   toggleControls()
 })
@@ -577,7 +583,7 @@ for (const $speedValue of $speedValues) {
 // Turn on/off fullscreen on icon click
 $fullScreenIcon.addEventListener('click', toggleFullscreen)
 // Turn on/off fullscreen on video double-click
-$videos[0].addEventListener('dblclick', toggleFullscreen)
+$video.addEventListener('dblclick', toggleFullscreen)
 
 // Hide controls if mouse hasn't moved at all
 let collapseTimeout = () => {
@@ -608,7 +614,7 @@ document.addEventListener('MSFullscreenChange', fixEscapeBehavior)
 $volumeIcon.addEventListener('click', toggleVolume)
 
 // Show replay icon if video ended
-$videos[0].addEventListener('ended', () => {
+$video.addEventListener('ended', () => {
   $playPauseIcon.innerText = 'replay'
   $playPause.dataset.state = 'ended'
 })
