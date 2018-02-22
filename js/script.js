@@ -55,7 +55,7 @@ const togglePause = () => {
     $video.play()
     $playPause.dataset.state = 'playing'
     $playPause.innerText = 'pause'
-  } else if ($video.currentTime == $video.duration){
+  } else if ($video.currentTime == $video.duration) {
     // Restart the video if it ended
     $video.currentTime = 0
     $video.play()
@@ -215,8 +215,9 @@ const fixEscapeBehavior = () => {
   if (window.innerHeight == screen.height && !fullscreenExitHandled) {
     // Set default player width
     $player.style.width = '650px'
-    // Reset blur backgorund position and dimensions
+    // Reset blur background position and dimensions
     updateBlurCoords()
+    updateBlur()
     // Reset player position
     resetStyling()
     // Update fullscreen icon
@@ -229,21 +230,21 @@ const updateTimeValues = () => {
   // Initialize
   $timePast.innerText = ''
   // Minutes
-  $timePast.innerText += Math.floor($video.currentTime/60).toString()
+  $timePast.innerText += Math.floor($video.currentTime / 60).toString()
   // Force 2 digits on seconds by prepending a 0 if the value is less than 10
-  $timePast.innerText += `:${Math.floor($video.currentTime%60) < 10 ? "0" : ""}`
+  $timePast.innerText += `:${Math.floor($video.currentTime % 60) < 10 ? "0" : ""}`
   // Seconds
-  $timePast.innerText += Math.floor($video.currentTime%60)
+  $timePast.innerText += Math.floor($video.currentTime % 60)
 
   // Time left
   // Initialize
   $timeLeft.innerText = '-'
   // Minutes
-  $timeLeft.innerText += Math.floor(($video.duration - $video.currentTime)/60).toString()
+  $timeLeft.innerText += Math.floor(($video.duration - $video.currentTime) / 60).toString()
   // Force 2 digits on seconds by prepending a 0 if the value is less than 10
-  $timeLeft.innerText += `:${Math.floor(($video.duration - $video.currentTime)%60) < 10 ? "0" : ""}`
+  $timeLeft.innerText += `:${Math.floor(($video.duration - $video.currentTime) % 60) < 10 ? "0" : ""}`
   // Seconds
-  $timeLeft.innerText += Math.floor(($video.duration - $video.currentTime)%60).toString()
+  $timeLeft.innerText += Math.floor(($video.duration - $video.currentTime) % 60).toString()
 }
 
 // Update video position based on seekbar click/drag
@@ -251,6 +252,7 @@ const updateVideoPosition = (left) => {
   const ratio = (left - $timeSeekBar.getBoundingClientRect().left) / $timeSeekBar.offsetWidth
   const videoTime = ratio * $video.duration
   $video.currentTime = videoTime
+  updateBlur()
 }
 
 // Seek bar drag started
@@ -308,7 +310,7 @@ const updateVolume = (ratio) => {
   // Update seekbar position
   $volumeFillBar.style.transform = `scaleX(${ratio})`
   // Compensate cursor shrink
-  $volumeCursor.style.transform = `scaleX(${1/ratio})`
+  $volumeCursor.style.transform = `scaleX(${1 / ratio})`
   // Save new volume in user consig
   userConfig.volume = ratio
   // Update icon depending on volume value
@@ -343,26 +345,25 @@ const updateBlurCoords = () => {
 }
 
 const updateBlur = () => {
-  if (!$video.paused) {
-    const canvasCoords = $controls.getBoundingClientRect()
-    const videoCoords = $video.getBoundingClientRect()
+  // Update blur based on video behind it
+  const canvasCoords = $controls.getBoundingClientRect()
+  const videoCoords = $video.getBoundingClientRect()
 
-    const offsetX = canvasCoords.left - videoCoords.left
-    const offsetY = canvasCoords.top - videoCoords.top
-    const widthRatio = $video.videoWidth / videoCoords.width
-    const heightRatio = $video.videoHeight / videoCoords.height
-    
-    // Dim and blur for better readability
-    blurContext.filter = 'blur(24px) brightness(93%)'
+  const offsetX = canvasCoords.left - videoCoords.left
+  const offsetY = canvasCoords.top - videoCoords.top
+  const widthRatio = $video.videoWidth / videoCoords.width
+  const heightRatio = $video.videoHeight / videoCoords.height
 
-    blurContext.drawImage(
-      $video,
-      offsetX * widthRatio, offsetY * heightRatio,
-      canvasCoords.width * widthRatio, canvasCoords.height * heightRatio,
-      0, 0,
-      canvasCoords.width, canvasCoords.height
-    )
-  }
+  // Dim and blur for better readability
+  blurContext.filter = 'blur(24px) brightness(93%)'
+
+  blurContext.drawImage(
+    $video,
+    offsetX * widthRatio, offsetY * heightRatio,
+    canvasCoords.width * widthRatio, canvasCoords.height * heightRatio,
+    0, 0,
+    canvasCoords.width, canvasCoords.height
+  )
   requestAnimationFrame(updateBlur)
 }
 
@@ -438,6 +439,7 @@ window.addEventListener('beforeunload', () => {
 
 // Update blur on each video frame
 requestAnimationFrame(updateBlur)
+updateBlur()
 
 // Prevent all drag gestures
 document.addEventListener('mousedown', (event) => {
@@ -470,7 +472,7 @@ $video.addEventListener('timeupdate', () => {
   const ratio = $video.currentTime / $video.duration
   $timeFillBar.style.transform = `scaleX(${ratio})`
   // Prevent cursor shrink
-  $timeCursor.style.transform = `scaleX(${1/ratio})`
+  $timeCursor.style.transform = `scaleX(${1 / ratio})`
   // Update time info
   window.setInterval(updateTimeValues, 1000)
 })
@@ -480,7 +482,6 @@ $timeSeekBar.addEventListener('mousedown', (event) => {
   timeDragStart(event.clientX)
 })
 $timeSeekBar.addEventListener('touchstart', (event) => {
-  console.log('start')
   timeDragStart(event.clientX)
 })
 
@@ -489,7 +490,6 @@ document.addEventListener("mousemove", event => {
   timeDragMiddle(event.clientX)
 })
 document.addEventListener("touchmove", event => {
-  console.log("move")
   timeDragMiddle(event.clientX)
 })
 
@@ -498,7 +498,6 @@ document.addEventListener('mouseup', (event) => {
   timeDragEnd(event.clientX)
 })
 document.addEventListener('touchend', (event) => {
-  console.log("end")
   timeDragEnd(event.clientX)
 })
 
