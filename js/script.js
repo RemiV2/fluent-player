@@ -12,7 +12,7 @@ const $speedValues = Array.from($settingsPopup.querySelectorAll('.speed .value')
 const $speedValuesCheckBoxes = Array.from($settingsPopup.querySelectorAll('.speed .value .material-icons'))
 const $controls = $player.querySelector('.controls')
 const $canvasBlur = $controls.querySelector('canvas.blur')
-const $blurContext = $canvasBlur.getContext("2d")
+const blurContext = $canvasBlur.getContext("2d")
 const $playPause = $controls.querySelector('.play-pause')
 const $timeSeekBar = $controls.querySelector('.seek-bar.time-bar')
 const $timeFillBar = $timeSeekBar.querySelector('.fill-bar.time-bar')
@@ -344,7 +344,24 @@ const updateBlurCoords = () => {
 
 const updateBlur = () => {
   if (!$video.paused) {
-    $blurContext.fillRect(0, 0, $canvasBlur.width, $canvasBlur.height)
+    const canvasCoords = $controls.getBoundingClientRect()
+    const videoCoords = $video.getBoundingClientRect()
+
+    const offsetX = canvasCoords.left - videoCoords.left
+    const offsetY = canvasCoords.top - videoCoords.top
+
+    const widthRatio = $video.videoWidth / videoCoords.width
+    const heightRatio = $video.videoHeight / videoCoords.height
+
+    blurContext.filter = 'blur(24px) brightness(93%)'
+
+    blurContext.drawImage(
+      $video,
+      offsetX * widthRatio, offsetY * heightRatio,
+      canvasCoords.width * widthRatio, canvasCoords.height * heightRatio,
+      0, 0,
+      canvasCoords.width, canvasCoords.height
+    )
   }
   requestAnimationFrame(updateBlur)
 }
