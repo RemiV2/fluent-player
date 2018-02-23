@@ -55,6 +55,7 @@ const togglePause = () => {
     $video.play()
     $playPause.dataset.state = 'playing'
     $playPause.innerText = 'pause'
+    updateBlur()
   } else if ($video.currentTime == $video.duration) {
     // Restart the video if it ended
     $video.currentTime = 0
@@ -109,6 +110,7 @@ const toggleFullscreen = () => {
   updateSettingsPopupStyle()
   // Update blurred background to the new dimensions once they're applied
   window.setTimeout(updateBlurCoords, 500)
+  updateBlur()
 }
 
 // Turn volume on and off
@@ -250,9 +252,9 @@ const updateTimeValues = () => {
 // Update video position based on seekbar click/drag
 const updateVideoPosition = (left) => {
   const ratio = (left - $timeSeekBar.getBoundingClientRect().left) / $timeSeekBar.offsetWidth
-  const videoTime = ratio * $video.duration
-  $video.currentTime = videoTime
-  updateBlur()
+  $video.currentTime = ratio * $video.duration
+  // Update blur once new position is set
+  window.setTimeout(updateBlur, 50)
 }
 
 // Seek bar drag started
@@ -364,7 +366,11 @@ const updateBlur = () => {
     0, 0,
     canvasCoords.width, canvasCoords.height
   )
-  requestAnimationFrame(updateBlur)
+  requestAnimationFrame(() => {
+    if (!$video.paused) {
+      updateBlur()
+    }
+  })
 }
 
 const updateSettingsPopupStyle = () => {
@@ -438,7 +444,11 @@ window.addEventListener('beforeunload', () => {
 })
 
 // Update blur on each video frame
-requestAnimationFrame(updateBlur)
+requestAnimationFrame(() => {
+  if (!$video.paused) {
+    updateBlur()
+  }
+})
 updateBlur()
 
 // Prevent all drag gestures
