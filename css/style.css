@@ -63,10 +63,12 @@ body {
 }
 
 .player {
-  position: relative;
-  margin: 27.5vmin auto 0 auto;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 650px;
-  max-width: 95%;
+  max-width: 100%;
   overflow: hidden;
   height: auto;
 }
@@ -122,7 +124,7 @@ body {
   width: 550px;
   height: 40px;
   padding: 0 5px;
-  max-width: 90%;
+  max-width: 94%;
   border-radius: 6px;
   touch-action: none;
   -webkit-box-shadow: rgba(0,0,0,0.1) 1px 3px 24px;
@@ -296,7 +298,7 @@ body {
           flex-direction: column;
   -ms-flex-pack: distribute;
       justify-content: space-around;
-  position: fixed;
+  position: absolute;
   border-radius: 3px;
   background: #fff;
   opacity: 0.95;
@@ -423,21 +425,4 @@ body {
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
   border-top: 10px solid #fff;
-}
-
-.views {
-  text-align: center;
-  font-family: 'san francisco', 'helvetica', 'roboto', 'arial';
-  font-size: 14px;
-  color: #000;
-  margin-top: 5px;
-  will-change: color;
-  -webkit-transition: 0.3s color ease-in-out;
-  -o-transition: 0.3s color ease-in-out;
-  transition: 0.3s color ease-in-out;
-  opacity: 0.95;
-}
-
-.views.night-mode {
-  color: #fff;
 }

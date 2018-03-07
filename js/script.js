@@ -1,7 +1,6 @@
 // VARIABLES
 
 const $filterBlack = document.querySelector('.black-filter')
-const $views = document.querySelector('.views')
 const $player = document.querySelector('.player')
 const $filterRed = $player.querySelector('.red-filter')
 const $video = $player.querySelector('.video')
@@ -107,7 +106,7 @@ const toggleFullscreen = () => {
   }
   // Adapt settings popup to the change
   $settingsPopup.classList.add('hidden')
-  updateSettingsPopupStyle()
+  window.setTimeout(updateSettingsPopupStyle, 100)
   // Update blurred background to the new dimensions once they're applied
   window.setTimeout(updateBlurCoords, 500)
   updateBlur()
@@ -143,8 +142,6 @@ const toggleNightMode = () => {
     $filterBlack.style.opacity = 0
     userConfig.nightMode = false
   }
-  // Adapt view count color
-  $views.classList.toggle('night-mode')
   // Switch checkbox style
   const $nightModeCheckBox = $nightMode.querySelector('.material-icons')
   if ($nightModeCheckBox.innerText == 'check_box') {
@@ -344,6 +341,8 @@ const updateBlurCoords = () => {
   // Update dimensions
   $canvasBlur.width = parseInt(getComputedStyle($controls).width)
   $canvasBlur.height = parseInt(getComputedStyle($controls).height)
+  // Update actual blur
+  updateBlur()
 }
 
 const updateBlur = () => {
@@ -374,14 +373,15 @@ const updateBlur = () => {
 }
 
 const updateSettingsPopupStyle = () => {
-  $settingsPopup.style.left = ($settingsIcon.getBoundingClientRect().left - 85).toString() + 'px'
-  $settingsPopup.style.top = ($settingsIcon.getBoundingClientRect().top - 114).toString() + 'px'
+  $settingsPopup.style.left = ($settingsIcon.getBoundingClientRect().left - $player.getBoundingClientRect().left - 85).toString() + 'px'
+  $settingsPopup.style.top = ($settingsIcon.getBoundingClientRect().top - $player.getBoundingClientRect().top - 114).toString() + 'px'
 }
 
 const resetStyling = () => {
   $player.style.width = '650px'
-  $player.style.maxWidth = '90%'
-  $player.style.margin = '27.5vmin auto 0 auto'
+  $player.style.maxWidth = '100%'
+  $player.style.top = '50%'
+  $player.style.left = '50%'
   $player.style.boxShadow = 'none'
   $controls.style.width = '550px'
 }
@@ -400,20 +400,11 @@ const updateUserConfig = () => {
 if (userConfig == null) {
   userConfig = {
     autoplay: true,
-    views: 0,
     lastSessionTime: 0,
     nightMode: false,
     playBackRate: 1,
     volume: 1
   }
-}
-
-// Increment view count
-userConfig.views++
-
-// Display new view count
-if (userConfig.views > 1) {
-  $views.innerText = `${userConfig.views} views`
 }
 
 // Play video or not depending on autoplay toggle
@@ -451,15 +442,11 @@ requestAnimationFrame(() => {
 })
 updateBlur()
 
+// Update blur on rotate
+window.addEventListener('orientationchange', updateBlurCoords)
+
 // Prevent all drag gestures
 document.addEventListener('mousedown', (event) => {
-  if (event.preventDefault) {
-    event.preventDefault()
-  } else {
-    event.returnValue = false
-  }
-})
-document.addEventListener('touchstart', (event) => {
   if (event.preventDefault) {
     event.preventDefault()
   } else {
