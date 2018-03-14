@@ -359,6 +359,7 @@ const updateBlur = () => {
   const heightRatio = $video.videoHeight / videoCoords.height
 
   // Dim and blur for better readability
+  blurContext.webkitFilter = 'blur(24px) brightness(93%)'
   blurContext.filter = 'blur(24px) brightness(93%)'
 
   blurContext.drawImage(
@@ -418,6 +419,14 @@ if (userConfig.autoplay) {
   $video.play()
   $playPauseIcon.innerText = 'pause'
   $playPauseIcon.dataset.state = 'playing'
+
+  const autoPlayPromise = $video.play();
+  if (autoPlayPromise !== undefined) {
+    autoPlayPromise.catch(error => {
+      // Auto-play was prevented
+      $video.pause()
+    })
+  }
 }
 
 // Turn night mode on depending on user settings
