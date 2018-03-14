@@ -211,7 +211,10 @@ const showControls = () => {
 
 // Reset styling if fullscreen was cancelled with escape key
 const fixEscapeBehavior = () => {
-  if (window.innerHeight == screen.height && !fullscreenExitHandled) {
+  // Check if fullscreen was exited
+  const fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement
+  if (!fullscreenElement) {
+    console.log("exit handled")
     // Set default player width
     $player.style.width = '650px'
     // Reset blur background position and dimensions
@@ -378,6 +381,7 @@ const updateSettingsPopupStyle = () => {
 }
 
 const resetStyling = () => {
+  console.log('reset')
   $player.style.width = '650px'
   $player.style.maxWidth = '100%'
   $player.style.top = '50%'
@@ -638,4 +642,10 @@ document.addEventListener('keydown', (event) => {
       updateCurrentTime(10)
       break
   }
+  return false
+})
+
+document.addEventListener('keyup', (event) => {
+  event.preventDefault()
+  return false
 })
